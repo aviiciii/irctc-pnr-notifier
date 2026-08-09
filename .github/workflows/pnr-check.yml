@@ -33,18 +33,21 @@ jobs:
           EMT_HEADERS_JSON: ${{ secrets.EMT_HEADERS_JSON }}
           RAPIDAPI_KEYS_JSON: ${{ secrets.RAPIDAPI_KEYS_JSON }}
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_TOPIC: ${{ vars.NTFY_TOPIC }}
           NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
-          RESEND_TO_EMAIL: ${{ secrets.RESEND_TO_EMAIL }}
+          RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL }}
+          RESEND_TO_EMAIL: ${{ vars.RESEND_TO_EMAIL }}
+          STATE_FILE: ${{ vars.STATE_FILE }}
         run: uv run python src/pnr_notifier.py
 
       - name: Commit updated state
+        env:
+          STATE_FILE: ${{ vars.STATE_FILE || 'state/pnr_state.json' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state/pnr_state.json
+          git add "$STATE_FILE"
           if ! git diff --cached --quiet; then
             git commit -m "chore: update PNR state [skip ci]"
             git push

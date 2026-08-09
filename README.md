@@ -14,11 +14,11 @@ Add repository secrets in **Settings → Secrets and variables → Actions**:
 - `PNR_LIST_JSON`: JSON array of all PNR entries.
 
 ### Notification (optional, one or both)
-- `NTFY_TOPIC`
+- `NTFY_TOPIC` (repository variable)
 - `NTFY_TOKEN` (optional)
 - `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-- `RESEND_TO_EMAIL`
+- `RESEND_FROM_EMAIL` (repository variable)
+- `RESEND_TO_EMAIL` (repository variable)
 
 ### Provider config
 - `EMT_HEADERS_JSON` (optional; JSON object of extra headers if needed)
@@ -65,5 +65,8 @@ ENV_FILE=.env.local uv run python src/pnr_notifier.py
 For key rotation, set either:
 - `RAPIDAPI_KEYS_JSON=["key_a","key_b","key_c"]` (preferred), or
 - `RAPIDAPI_KEY=single_key`.
+
+Optional repository variable:
+- `STATE_FILE` (defaults to `state/pnr_state.json`)
 
 State is persisted in `state/pnr_state.json` and is committed by the workflow after each run.
