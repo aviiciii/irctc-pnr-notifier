@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import re
@@ -8,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from cryptography.hazmat.primitives import padding as sym_padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 EMT_URL = "https://railways.easemytrip.com/Train/PnrchkStatus"
 RAPIDAPI_URL = "https://irctc1.p.rapidapi.com/api/v3/getPNRStatus"
@@ -126,6 +129,18 @@ def is_confirmed_status(status: str) -> bool:
     return any(k in u for k in ("CNF", "CONFIRM"))
 
 
+def encrypt_emt_pnr(pnr: str) -> str:
+    data = pnr.encode("utf-8")
+    padder = sym_padding.PKCS7(128).padder()
+    padded = padder.update(data) + padder.finalize()
+    key = b"8080808080808080"
+    iv = b"8080808080808080"
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    encryptor = cipher.encryptor()
+    ct = encryptor.update(padded) + encryptor.finalize()
+    return base64.b64encode(ct).decode("utf-8")
+
+
 def normalize_emt(entry: dict[str, Any], payload: dict[str, Any]) -> NormalizedStatus:
     passengers = payload.get("passengerList") or []
     statuses = [str(p.get("currentStatus", "")).strip() for p in passengers if p.get("currentStatus")]
@@ -233,31 +248,58 @@ def normalize_rapidapi(entry: dict[str, Any], payload: dict[str, Any]) -> Normal
 
 
 def call_emt(client: httpx.Client, entry: dict[str, Any], headers: dict[str, str]) -> ProviderResult:
-    token = entry.get("emt_pnr_token") or entry.get("pnr")
-    if not token:
+    token = str(entry.get("emt_pnr_token") or "").strip()
+    pnr = str(entry.get("pnr") or "").strip()
+    if not token and not pnr:
         return ProviderResult(provider="easemytrip", ok=False, error="Missing emt_pnr_token/pnr")
+
+    candidates: list[tuple[str, str]] = []
+    if token:
+        candidates.append(("emt_pnr_token", token))
+    else:
+        encrypted_pnr = encrypt_emt_pnr(pnr)
+        candidates.extend(
+            [
+                ("pnr_aes_cbc", encrypted_pnr),
+                ("pnr_plain", pnr),
+            ]
+        )
+
+    # Deduplicate while preserving order.
+    deduped: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for label, value in candidates:
+        if value not in seen:
+            seen.add(value)
+            deduped.append((label, value))
 
     req_headers = {"Content-Type": "application/json"}
     req_headers.update(headers)
 
-    try:
-        if debug_enabled():
-            print(f"[debug] easemytrip request pnr_id={entry.get('id') or entry.get('pnr')}", file=sys.stderr)
-        resp = client.post(EMT_URL, headers=req_headers, json={"pnrNumber": token}, timeout=20)
-        debug_http("easemytrip", resp)
-        resp.raise_for_status()
-        data = resp.json()
-        if not isinstance(data, dict):
-            return ProviderResult(
-                provider="easemytrip",
-                ok=False,
-                error=f"Unexpected response type: {type(data).__name__}",
-            )
-        if isinstance(data, dict) and data.get("errorMessage"):
-            return ProviderResult(provider="easemytrip", ok=False, error=str(data.get("errorMessage")))
-        return ProviderResult(provider="easemytrip", ok=True, data=data)
-    except Exception as exc:  # explicit surfacing in event message
-        return ProviderResult(provider="easemytrip", ok=False, error=str(exc))
+    errors: list[str] = []
+    for idx, (label, candidate) in enumerate(deduped, start=1):
+        try:
+            if debug_enabled():
+                print(
+                    f"[debug] easemytrip request pnr_id={entry.get('id') or entry.get('pnr')} "
+                    f"token_source={label} attempt={idx}/{len(deduped)}",
+                    file=sys.stderr,
+                )
+            resp = client.post(EMT_URL, headers=req_headers, json={"pnrNumber": candidate}, timeout=20)
+            debug_http("easemytrip", resp)
+            resp.raise_for_status()
+            data = resp.json()
+            if not isinstance(data, dict):
+                errors.append(f"{label}: Unexpected response type: {type(data).__name__}")
+                continue
+            if data.get("errorMessage"):
+                errors.append(f"{label}: {data.get('errorMessage')}")
+                continue
+            return ProviderResult(provider="easemytrip", ok=True, data=data)
+        except Exception as exc:  # explicit surfacing in event message
+            errors.append(f"{label}: {exc}")
+
+    return ProviderResult(provider="easemytrip", ok=False, error=" | ".join(errors))
 
 
 def call_rapidapi(client: httpx.Client, entry: dict[str, Any]) -> ProviderResult:
