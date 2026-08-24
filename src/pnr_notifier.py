@@ -461,7 +461,7 @@ def build_events(old: dict[str, Any] | None, new: NormalizedStatus) -> list[dict
 
 
 def notify_ntfy(client: httpx.Client, event: dict[str, str]) -> None:
-    topic = os.getenv("NTFY_TOPIC")
+    topic = (os.getenv("NTFY_TOPIC") or "").strip().strip('"\'')
     if not topic:
         return
 
@@ -472,7 +472,6 @@ def notify_ntfy(client: httpx.Client, event: dict[str, str]) -> None:
     }
     token = os.getenv("NTFY_TOKEN")
     if token:
-        headers["Authorization"] = f"Bearer {token}"
         headers["Authorization"] = f"Bearer {token}"
 
     resp = client.post(f"https://ntfy.sh/{topic}", headers=headers, content=event["body"], timeout=20)
