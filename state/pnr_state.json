@@ -2,23 +2,23 @@
   "pnrs": {
     "ben-mas": {
       "chart_prepared": false,
-      "checked_at": "2026-08-31T08:00:13.998545+00:00",
+      "checked_at": "2026-09-01T07:07:29.204800+00:00",
       "confirmed": false,
       "current_statuses": [
+        "GNWL  16",
         "GNWL  17",
-        "GNWL  18",
-        "GNWL  19"
+        "GNWL  18"
       ],
       "pnr": "4949608635",
       "pnr_id": "ben-mas",
       "provider": "easemytrip",
-      "raw_summary": "Train 12658 SBC MAS SF MAIL | Chart: Chart Not Prepared | Current: GNWL  17, GNWL  18, GNWL  19",
+      "raw_summary": "Train 12658 SBC MAS SF MAIL | Chart: Chart Not Prepared | Current: GNWL  16, GNWL  17, GNWL  18",
       "waiting_numbers": [
+        16,
         17,
-        18,
-        19
+        18
       ]
     }
   },
-  "updated_at": "2026-08-31T08:00:13.998714+00:00"
+  "updated_at": "2026-09-01T07:07:29.619493+00:00"
 }
