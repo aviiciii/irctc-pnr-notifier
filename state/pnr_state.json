@@ -2,7 +2,7 @@
   "pnrs": {
     "ben-mas": {
       "chart_prepared": false,
-      "checked_at": "2026-09-01T07:07:29.204800+00:00",
+      "checked_at": "2026-09-02T06:44:02.613744+00:00",
       "confirmed": false,
       "current_statuses": [
         "GNWL  16",
@@ -20,5 +20,5 @@
       ]
     }
   },
-  "updated_at": "2026-09-01T07:07:29.619493+00:00"
+  "updated_at": "2026-09-02T06:44:02.613935+00:00"
 }
