@@ -48,7 +48,7 @@ Store all personal values in `PNR_LIST_JSON` only.
 
 - `id`: label used in notifications.
 - `pnr`: plain PNR for fallback providers.
-- `emt_pnr_token`: encrypted value for EaseMyTrip endpoint (recommended).
+- `emt_pnr_token`: encrypted value for EaseMyTrip endpoint (optional/if absent generated automatically).
 
 ## Run locally with uv
 
