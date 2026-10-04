@@ -1,20 +1,20 @@
 {
   "pnrs": {
     "ben-mas": {
-      "chart_prepared": false,
-      "checked_at": "2026-10-03T07:28:41.524776+00:00",
+      "chart_prepared": true,
+      "checked_at": "2026-10-04T07:42:07.042731+00:00",
       "confirmed": false,
       "current_statuses": [
-        "RAC  5",
-        "RAC  6",
-        "RAC  7"
+        "RAC",
+        "RAC",
+        "RAC"
       ],
       "pnr": "4949608635",
       "pnr_id": "ben-mas",
       "provider": "easemytrip",
-      "raw_summary": "Train 12658 SBC MAS SF MAIL | Chart: Chart Not Prepared | Current: RAC  5, RAC  6, RAC  7",
+      "raw_summary": "Train 12658 SBC MAS SF MAIL | Chart: Chart Prepared | Current: RAC, RAC, RAC",
       "waiting_numbers": []
     }
   },
-  "updated_at": "2026-10-03T07:28:41.704560+00:00"
+  "updated_at": "2026-10-04T07:42:07.185144+00:00"
 }
